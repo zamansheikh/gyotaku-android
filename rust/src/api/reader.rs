@@ -9,6 +9,7 @@ use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
 use gyotaku_core::{Config, Script};
 use gyotaku_ocr::Ocr;
+use image::RgbImage;
 
 use super::index::Line;
 
@@ -291,9 +292,45 @@ pub fn read_image(path: String) -> Result<Vec<Line>> {
 /// in a fraction of the time. See `gyotaku_ocr::Ocr::read_rest`.
 pub fn read_rest(path: String, known: Vec<super::index::Rect>) -> Result<Vec<Line>> {
     let _polite = Polite::new();
+    let img = gyotaku_ocr::load_image(std::path::Path::new(&path))?;
+    rest_of(&img, known)
+}
+
+/// `read_rest` for an image the app has already opened, as its pixels:
+/// four bytes each, red, green, blue and alpha, row after row. For the
+/// files `gyotaku-ocr` can't open itself. It opens PNG, JPEG and WebP; a
+/// phone also holds HEIF photos, GIFs and whatever else its own decoders
+/// know, and the app has those decoders where this crate does not.
+pub fn read_rest_pixels(
+    rgba: Vec<u8>,
+    width: u32,
+    height: u32,
+    known: Vec<super::index::Rect>,
+) -> Result<Vec<Line>> {
+    let _polite = Polite::new();
+    let img = rgb(&rgba, width, height)?;
+    drop(rgba);
+    rest_of(&img, known)
+}
+
+/// The pixels without their alpha, which no recognizer looks at.
+fn rgb(rgba: &[u8], width: u32, height: u32) -> Result<RgbImage> {
+    let pixels = width as usize * height as usize;
+    anyhow::ensure!(
+        rgba.len() == pixels * 4,
+        "{} bytes is not a {width} by {height} image",
+        rgba.len()
+    );
+    let mut out = Vec::with_capacity(pixels * 3);
+    for p in rgba.chunks_exact(4) {
+        out.extend_from_slice(&p[..3]);
+    }
+    RgbImage::from_raw(width, height, out).context("building the image")
+}
+
+fn rest_of(img: &RgbImage, known: Vec<super::index::Rect>) -> Result<Vec<Line>> {
     let mut guard = OCR.lock().unwrap_or_else(|e| e.into_inner());
     let ocr = loaded(&mut guard)?;
-    let img = gyotaku_ocr::load_image(std::path::Path::new(&path))?;
     let known: Vec<gyotaku_core::Rect> = known
         .into_iter()
         .map(|r| gyotaku_core::Rect {
@@ -304,7 +341,7 @@ pub fn read_rest(path: String, known: Vec<super::index::Rect>) -> Result<Vec<Lin
         })
         .collect();
     Ok(ocr
-        .read_rest(&img, &known)?
+        .read_rest(img, &known)?
         .into_iter()
         .map(Into::into)
         .collect())
@@ -315,4 +352,23 @@ pub fn read_rest(path: String, known: Vec<super::index::Rect>) -> Result<Vec<Lin
 pub fn release_readers() {
     *OCR.lock().unwrap_or_else(|e| e.into_inner()) = None;
     WORKERS.lock().unwrap_or_else(|e| e.into_inner()).clear();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pixels_lose_their_alpha_and_keep_their_place() {
+        // Two pixels side by side, the second half transparent.
+        let img = rgb(&[1, 2, 3, 255, 4, 5, 6, 128], 2, 1).unwrap();
+        assert_eq!(img.get_pixel(0, 0).0, [1, 2, 3]);
+        assert_eq!(img.get_pixel(1, 0).0, [4, 5, 6]);
+    }
+
+    #[test]
+    fn pixels_of_the_wrong_length_are_refused() {
+        assert!(rgb(&[0; 7], 2, 1).is_err());
+        assert!(rgb(&[0; 8], 2, 2).is_err());
+    }
 }

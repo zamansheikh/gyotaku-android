@@ -19,6 +19,8 @@ crate-type = ["cdylib", "staticlib"]
 gyotaku-core = { git = "https://github.com/zamansheikh/gyotaku", rev = "684d6b21583ad707cdea992311dcf535d3bacecf" }
 gyotaku-ocr = { git = "https://github.com/zamansheikh/gyotaku", rev = "684d6b21583ad707cdea992311dcf535d3bacecf" }
 anyhow = "1.0"
+# Only for the type the readers take an image as. The decoders are theirs.
+image = { version = "0.25", default-features = false }
 flutter_rust_bridge = "=2.13.0"
 
 # Only to lower the priority of the reading threads.

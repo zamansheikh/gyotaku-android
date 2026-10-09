@@ -4,7 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widgets.dart';
-import 'package:flutter_rust_bridge/flutter_rust_bridge.dart' show Int64List;
+import 'package:flutter_rust_bridge/flutter_rust_bridge.dart'
+    show AnyhowException, Int64List;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -369,10 +370,7 @@ class Reader extends ChangeNotifier {
               for (final l in phone)
                 if (l.sure) l.line,
             ];
-            final rest = await own.readRest(
-              path: image.path,
-              known: [for (final l in sure) l.rect],
-            );
+            final rest = await _rest(image, [for (final l in sure) l.rect]);
             await _put(image, [...sure, ...rest]);
             await deepReads.add(image.path, image.mtime);
             // Seconds apart, so each one is shown as it lands.
@@ -453,7 +451,7 @@ class Reader extends ChangeNotifier {
         // on the next look.
         debugPrint('gyotaku: could not read ${image.path}: $e');
         failed++;
-        failure = _plain(e);
+        failure = '$current: ${_plain(e)}';
       }
       done++;
       _finished++;
@@ -556,6 +554,76 @@ class Reader extends ChangeNotifier {
     lines: lines,
   );
 
+  /// What gyotaku's own readers make of the lines the phone was not sure
+  /// of. They open PNG, JPEG and WebP by themselves. Anything else the
+  /// phone can show, a HEIF photo for one, is opened here and handed over
+  /// as pixels, or it could never be read and was tried again on every
+  /// look.
+  Future<List<core.Line>> _rest(_Image image, List<core.Rect> known) async {
+    if (await _opensItself(image.path)) {
+      return own.readRest(path: image.path, known: known);
+    }
+    final buffer = await ui.ImmutableBuffer.fromFilePath(image.path);
+    ui.ImageDescriptor? header;
+    ui.Codec? codec;
+    ui.Image? picture;
+    try {
+      header = await ui.ImageDescriptor.encoded(buffer);
+      if (header.width * header.height > _mostPixels) {
+        throw const FormatException('The image is too large to read');
+      }
+      codec = await header.instantiateCodec();
+      picture = (await codec.getNextFrame()).image;
+      final pixels = await picture.toByteData(
+        format: ui.ImageByteFormat.rawStraightRgba,
+      );
+      if (pixels == null) {
+        throw const FormatException('The image could not be opened');
+      }
+      return await own.readRestPixels(
+        rgba: pixels.buffer.asUint8List(
+          pixels.offsetInBytes,
+          pixels.lengthInBytes,
+        ),
+        width: picture.width,
+        height: picture.height,
+        known: known,
+      );
+    } finally {
+      picture?.dispose();
+      codec?.dispose();
+      header?.dispose();
+      buffer.dispose();
+    }
+  }
+
+  // The same ceiling gyotaku's readers put on a file they open themselves:
+  // 64 megapixels, far past any screen.
+  static const _mostPixels = 64 * 1024 * 1024;
+
+  /// Whether a file is one of the kinds gyotaku's readers open, going by
+  /// its first bytes as they do, not by its name.
+  static Future<bool> _opensItself(String path) async {
+    final file = await File(path).open();
+    try {
+      final b = await file.read(12);
+      bool starts(List<int> magic, [int at = 0]) {
+        if (b.length < at + magic.length) return false;
+        for (var i = 0; i < magic.length; i++) {
+          if (b[at + i] != magic[i]) return false;
+        }
+        return true;
+      }
+
+      return starts(const [0x89, 0x50, 0x4e, 0x47]) || // PNG
+          starts(const [0xff, 0xd8, 0xff]) || // JPEG
+          (starts(const [0x52, 0x49, 0x46, 0x46]) && // RIFF
+              starts(const [0x57, 0x45, 0x42, 0x50], 8)); // WEBP
+    } finally {
+      await file.close();
+    }
+  }
+
   Future<List<_PhoneLine>> _withPhone(
     _Image f,
     TextRecognizer recognizer,
@@ -644,6 +712,16 @@ class Reader extends ChangeNotifier {
     if (e is PlatformException) {
       final said = e.message ?? e.code;
       return said.split(': ').last.split('\n').first;
+    }
+    if (e is AnyhowException) {
+      // The first line says what was being done, with the whole path; the
+      // last says what went wrong, which is the part worth showing.
+      final lines = [
+        for (final l in e.message.split('\n'))
+          if (l.trim().isNotEmpty && l.trim() != 'Caused by:') l.trim(),
+      ];
+      if (lines.isEmpty) return 'it could not be read';
+      return lines.last.replaceFirst(RegExp(r'^\d+: '), '');
     }
     return '$e'.split('\n').first;
   }
