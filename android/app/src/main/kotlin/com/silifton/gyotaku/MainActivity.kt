@@ -1,4 +1,4 @@
-package app.gyotaku.gyotaku
+package com.silifton.gyotaku
 
 import android.Manifest
 import android.content.Context

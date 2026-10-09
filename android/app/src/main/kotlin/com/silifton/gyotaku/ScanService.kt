@@ -1,4 +1,4 @@
-package app.gyotaku.gyotaku
+package com.silifton.gyotaku
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -105,7 +105,7 @@ class ScanService : Service() {
         const val DONE = "done"
         const val TOTAL = "total"
 
-        const val ACTION_PAUSE = "app.gyotaku.gyotaku.PAUSE"
+        const val ACTION_PAUSE = "com.silifton.gyotaku.PAUSE"
 
         /** Set by the activity: what to do when Pause is pressed. */
         @Volatile

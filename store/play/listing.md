@@ -48,7 +48,7 @@ Reading carries on after you leave the app, with its progress in a notification.
 
 OPEN SOURCE
 
-gyotaku is free and open source under the GNU General Public License v3.0 or later. This Android app is built on the gyotaku desktop project created by Yash Bavadiya. The source code is public.
+gyotaku is free and open source under the GNU General Public License v3.0 or later. This is an unofficial community app for Android, built on the gyotaku desktop project created by Yash Bavadiya and maintained separately from it. The source code is public.
 
 GOOD TO KNOW
 
@@ -59,7 +59,7 @@ GOOD TO KNOW
 About the name: gyotaku is a Japanese way of recording a catch by inking a fish and pressing it onto paper. While you search, your screenshots are inked dark and only the words you searched for stay lit.
 ```
 
-## What's new (500 characters at most), for version 1.1.3
+## What's new (500 characters at most), for version 1.2.0
 
 ```
 First release on Google Play.
@@ -79,7 +79,7 @@ First release on Google Play.
 | Contains ads | No |
 | In-app purchases | No |
 | Contact email | yours, shown publicly on the listing |
-| Website | https://github.com/zamansheikh/gyotaku (or https://gyotaku.app with the project owner's agreement) |
+| Website | https://github.com/zamansheikh/gyotaku-android |
 | Privacy policy URL | a public page with the text of `privacy-policy.md` |
 | Default language | English (United States) |
 

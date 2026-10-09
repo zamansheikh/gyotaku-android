@@ -6,16 +6,18 @@ edition = "2021"
 license = "GPL-3.0-or-later"
 publish = false
 
-# Its own workspace, so the desktop workspace at the repository root never
-# builds flutter_rust_bridge and this builds without gpui.
 [workspace]
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-gyotaku-core = { path = "../../crates/core" }
-gyotaku-ocr = { path = "../../crates/ocr" }
+# The index, search and readers are the gyotaku desktop project's own crates.
+# Pinned to a commit of a fork that carries the Bengali reader and read_rest
+# until those are merged upstream (xevrion/gyotaku#8 and #10); after that
+# this points at xevrion/gyotaku.
+gyotaku-core = { git = "https://github.com/zamansheikh/gyotaku", rev = "684d6b21583ad707cdea992311dcf535d3bacecf" }
+gyotaku-ocr = { git = "https://github.com/zamansheikh/gyotaku", rev = "684d6b21583ad707cdea992311dcf535d3bacecf" }
 anyhow = "1.0"
 flutter_rust_bridge = "=2.13.0"
 

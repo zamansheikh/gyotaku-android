@@ -16,12 +16,12 @@ What is in this folder, and what is still needed that a file cannot provide.
 
 The app bundle to upload is built with `flutter build appbundle --release` and lands in `build/app/outputs/bundle/release/app-release.aab`. It is signed with the key named in `android/key.properties`, which becomes the upload key.
 
-## Decide before the first upload
+## Settled with the desktop project's author
 
-These cannot be changed afterwards, or are not yours alone to decide.
+Asked in xevrion/gyotaku#9, he prefers the Android app to be its own project: its own repository, its own package name, and a note that it is unofficial. So:
 
-1. **The package name.** It is `app.gyotaku.gyotaku`, which borrows the domain of the upstream project (gyotaku.app). A package name is permanent once published. Either get the upstream owner's agreement to use it, or change it to one under a name you control.
-2. **The name and the icon.** "gyotaku" and the fish mark belong to the upstream project by Yash Bavadiya. The license (GPL-3.0-or-later) allows publishing the code. It does not by itself settle using the project's name and icon on a store listing. Ask first, or publish under a different name with a clear "based on gyotaku" credit.
+1. **The package name is `com.silifton.gyotaku`.** A package name is permanent once published, so change it now if you want another.
+2. **The listing says it is unofficial** and credits the desktop project. He offered to link this app from the gyotaku README and site as a community Android app. He was not asked in so many words about the name "gyotaku" and the fish mark on a store listing; one line to confirm that is worth sending before submitting.
 3. **Play App Signing.** Play keeps the real signing key and you keep the upload key. Back up `gyotaku-release.jks` and its password before uploading anything.
 
 ## Steps in Play Console

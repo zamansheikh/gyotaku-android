@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// The same palette as the desktop app (`crates/app/src/theme.rs`). The
+/// The same palette as the gyotaku desktop app (`crates/app/src/theme.rs`
+/// in xevrion/gyotaku). The
 /// screenshots are the colour; everything around them is off white or near
 /// black. Shu only ever means "the search found this", and selection is ink.
 class Palette {

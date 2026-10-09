@@ -7,7 +7,7 @@ import 'theme.dart';
 
 const _project = 'https://github.com/xevrion/gyotaku';
 const _site = 'https://gyotaku.app';
-const _androidSource = 'https://github.com/zamansheikh/gyotaku';
+const _androidSource = 'https://github.com/zamansheikh/gyotaku-android';
 
 /// What gyotaku is, who made it, and where its source lives.
 class AboutPage extends StatefulWidget {
@@ -130,6 +130,20 @@ class _AboutPageState extends State<AboutPage> {
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(28, 12, 28, 0),
+                      child: Text(
+                        'An unofficial community app, built on the gyotaku '
+                        'desktop project. Please report problems with it to '
+                        'this app, not to the desktop project.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          height: 1.45,
+                          color: p.faint,
+                        ),
+                      ),
+                    ),
                     heading('Made by'),
                     _Line(
                       title: 'Yash Bavadiya',
@@ -143,13 +157,13 @@ class _AboutPageState extends State<AboutPage> {
                     ),
                     heading('Open source'),
                     _Line(
-                      title: 'gyotaku on GitHub',
+                      title: 'gyotaku, the desktop project',
                       detail: 'github.com/xevrion/gyotaku',
                       onTap: () => _open(_project),
                     ),
                     _Line(
                       title: 'Source of this Android app',
-                      detail: 'github.com/zamansheikh/gyotaku',
+                      detail: 'github.com/zamansheikh/gyotaku-android',
                       onTap: () => _open(_androidSource),
                     ),
                     _Line(
@@ -160,7 +174,7 @@ class _AboutPageState extends State<AboutPage> {
                     _Line(
                       title: 'License',
                       detail: 'GNU General Public License v3.0 or later',
-                      onTap: () => _open('$_project/blob/main/LICENSE'),
+                      onTap: () => _open('$_androidSource/blob/main/LICENSE'),
                     ),
                     heading('Built with'),
                     const _Line(
