@@ -9,6 +9,7 @@ gyotaku for Android: an unofficial community app that makes the screenshots on a
 - `lib/src/rust/`, `rust/src/frb_generated.rs` and `rust_builder/` are generated. Never edit them; run `flutter_rust_bridge_codegen generate` after changing `rust/src/api`.
 - `android/app/src/main/kotlin/com/silifton/gyotaku/` has two files. `ScanService.kt` is the foreground service and notification. `MainActivity.kt` runs the app in one cached Flutter engine that outlives the window.
 - `store/play/` is the Play Store kit: listing, privacy policy, form answers, graphics and the two scripts that drew them.
+- `docs/` is the site, served by GitHub Pages from `main` at https://zamansheikh.github.io/gyotaku-android/. It is plain HTML with one stylesheet and no build step. `docs/privacy/index.html` is the policy the Play listing links to and repeats `store/play/privacy-policy.md`; change both together. The README's images also live in `docs/`.
 
 Reading is in two passes. ML Kit reads everything first, about a quarter of a second an image. Only while Read Bengali or Read Devanagari is on, `gyotaku-ocr` goes back over each image for the lines ML Kit was not sure of (`Ocr::read_rest`), at seconds an image.
 

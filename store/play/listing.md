@@ -79,8 +79,9 @@ First release on Google Play.
 | Contains ads | No |
 | In-app purchases | No |
 | Contact email | yours, shown publicly on the listing |
-| Website | https://github.com/zamansheikh/gyotaku-android |
-| Privacy policy URL | a public page with the text of `privacy-policy.md` |
+| Website | https://zamansheikh.github.io/gyotaku-android/ |
+| Privacy policy URL | https://zamansheikh.github.io/gyotaku-android/privacy/ |
+| Support page | https://zamansheikh.github.io/gyotaku-android/support/ |
 | Default language | English (United States) |
 
 ## Graphics in this folder

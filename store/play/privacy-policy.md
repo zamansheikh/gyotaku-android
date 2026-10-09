@@ -2,7 +2,7 @@
 
 Last updated: 10 October 2026
 
-gyotaku is an app that makes the screenshots on your phone searchable by the text inside them. This policy covers the gyotaku app for Android.
+gyotaku is an app that makes the screenshots on your phone searchable by the text inside them. This policy covers the gyotaku app for Android (package name `com.silifton.gyotaku`), an unofficial community app developed by Zaman Sheikh.
 
 ## The short version
 
@@ -47,4 +47,4 @@ If this policy changes, the new version will be published at the same address wi
 
 ## Contact
 
-Questions about this policy: CONTACT_EMAIL
+Questions about this policy: open an issue at https://github.com/zamansheikh/gyotaku-android/issues.

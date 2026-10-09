@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>gyotaku for Android: search your screenshots by their text</title>
+  <meta name="description" content="Find any screenshot on your phone by the text inside it. Everything is read on the phone; nothing is uploaded. An unofficial community app for Android.">
+  <meta property="og:title" content="gyotaku for Android">
+  <meta property="og:description" content="Find any screenshot on your phone by the text inside it. Read on the phone, never uploaded.">
+  <meta property="og:image" content="https://zamansheikh.github.io/gyotaku-android/icon-mockup.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <div class="page">
+    <header class="bar">
+      <a class="brand" href="./"><img src="icon.png" alt="">gyotaku</a>
+      <nav aria-label="Site">
+        <a href="privacy/">Privacy</a>
+        <a href="support/">Support</a>
+        <a href="https://github.com/zamansheikh/gyotaku-android">Source</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <h1>Find any screenshot by the text inside it</h1>
+          <p class="lede">gyotaku reads the screenshots on your Android phone and makes them searchable. Everything is read on the phone. Nothing is uploaded.</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/zamansheikh/gyotaku-android/releases">Download for Android</a>
+            <a href="https://github.com/zamansheikh/gyotaku-android">Read the source</a>
+          </div>
+          <p class="fine">Free and open source. Android 7.0 or later. No account, no ads, no analytics.</p>
+        </div>
+
+        <figure class="found" aria-label="An example search">
+          <div class="query">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <span>deliv</span>
+          </div>
+          <ul class="lines">
+            <li>Order 48213</li>
+            <li class="hit">Out for <mark>deliv</mark>ery today</li>
+            <li>2 items, paid by card</li>
+            <li class="hit"><mark>Deliv</mark>ery address: 14 Lake Road</li>
+            <li>Thank you for shopping with us</li>
+          </ul>
+          <figcaption>Part of a word is enough. The lines that match stay lit and the rest are dimmed.</figcaption>
+        </figure>
+      </section>
+
+      <section class="shots" aria-label="Screenshots of the app">
+        <img src="screen-01.png" width="618" height="1100" alt="Searching for wifi finds two screenshots">
+        <img src="screen-03.png" width="618" height="1100" alt="An open screenshot with the matching lines lit">
+        <img src="screen-06.png" width="618" height="1100" alt="The text of a Bangla screenshot">
+        <img src="screen-07.png" width="618" height="1100" alt="Reading in the background with a progress bar">
+      </section>
+
+      <section class="columns">
+        <div>
+          <h2>What it does</h2>
+          <ul>
+            <li>Searches by the text in a screenshot, not its file name or date.</li>
+            <li>Copies text out: one line, or all of it.</li>
+            <li>Filters by Today, Yesterday, This week and This month.</li>
+            <li>Reads only the folders you choose.</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Private by design</h2>
+          <ul>
+            <li>Your screenshots are read on your phone and never uploaded.</li>
+            <li>The only network use is downloading a reader you turn on.</li>
+            <li>It only reads your images. It never changes, moves or deletes them.</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Bangla and Hindi</h2>
+          <p>Turn on Read Bengali or Read Devanagari in settings to also read Bangla, Hindi, Marathi and Nepali. These readers download once and are slower: a few seconds for each screenshot. Reading carries on with the app put away, and can be paused.</p>
+        </div>
+      </section>
+
+      <div class="notice"><p><strong>This is an unofficial community app.</strong> It is built on <a href="https://github.com/xevrion/gyotaku">gyotaku</a>, the desktop app by Yash Bavadiya, and uses that project's own index, search and readers. It is maintained separately by Zaman Sheikh. Please report problems with the Android app in <a href="https://github.com/zamansheikh/gyotaku-android/issues">this app's issues</a>, not to the desktop project.</p></div>
+    </main>
+
+    <footer>
+      <nav aria-label="Footer">
+        <a href="privacy/">Privacy policy</a>
+        <a href="support/">Support</a>
+        <a href="https://github.com/zamansheikh/gyotaku-android">Source code</a>
+        <a href="https://github.com/zamansheikh/gyotaku-android/releases">Releases</a>
+      </nav>
+      <p>Licensed under the GNU General Public License v3.0 or later. The name gyotaku and the fish mark are the desktop project's. The screenshots shown here are invented, not anyone's real messages or receipts.</p>
+    </footer>
+  </div>
+</body>
+</html>

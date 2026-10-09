@@ -15,7 +15,7 @@ Search every screenshot on your phone by the text inside it. Everything is read 
 
 **This is an unofficial community app.** It is built on [gyotaku](https://github.com/xevrion/gyotaku), the desktop app by Yash Bavadiya, and uses that project's own index, search and readers. It is maintained here, separately, by Zaman Sheikh. Please report problems with the Android app in [this repository's issues](https://github.com/zamansheikh/gyotaku-android/issues), not to the desktop project.
 
-Download the latest build from [Releases](https://github.com/zamansheikh/gyotaku-android/releases). Android 7.0 or later.
+Download the latest build from [Releases](https://github.com/zamansheikh/gyotaku-android/releases). Android 7.0 or later. The app's site, with its [privacy policy](https://zamansheikh.github.io/gyotaku-android/privacy/) and [support page](https://zamansheikh.github.io/gyotaku-android/support/), is at [zamansheikh.github.io/gyotaku-android](https://zamansheikh.github.io/gyotaku-android/).
 
 ## What it does
 
@@ -45,6 +45,7 @@ Reading carries on with the app put away, in a foreground service (`android/app/
 | `rust/` | The bridge crate over `gyotaku-core` and `gyotaku-ocr` |
 | `rust_builder/` | Generated build glue that compiles `rust/` for each platform |
 | `store/play/` | Play Store listing, graphics and form answers |
+| `docs/` | The site on GitHub Pages (home, privacy policy, support) and the images this README shows |
 
 `rust/Cargo.toml` takes the two gyotaku crates by git, pinned to a commit. For now that is a commit of a fork carrying the Bengali reader and `read_rest`, both proposed upstream (xevrion/gyotaku#8 and #10). Once they are merged it will point at xevrion/gyotaku.
 

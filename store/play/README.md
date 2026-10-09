@@ -7,7 +7,7 @@ What is in this folder, and what is still needed that a file cannot provide.
 | File | What it is |
 |---|---|
 | `listing.md` | App name, short and full description, release notes, category |
-| `privacy-policy.md` | The privacy policy text. Needs a contact email filled in and a public URL |
+| `privacy-policy.md` | The privacy policy text. Published at https://zamansheikh.github.io/gyotaku-android/privacy/ from `docs/privacy/index.html`; change both together |
 | `console-answers.md` | Suggested answers for Data safety, content rating and the two permission declarations |
 | `icon-512.png` | Store icon |
 | `feature-graphic.png` | Feature graphic |
@@ -28,7 +28,7 @@ Asked in xevrion/gyotaku#9, he prefers the Android app to be its own project: it
 
 1. Create the app: name, default language, app, free.
 2. Set up the store listing from `listing.md` and the graphics here.
-3. Host the privacy policy at a public URL and enter it.
+3. Enter the privacy policy URL from `listing.md`.
 4. Fill in Data safety, content rating, target audience and ads from `console-answers.md`.
 5. Submit the photo permission and foreground service declarations, with the video.
 6. Upload the app bundle to a closed testing track.
