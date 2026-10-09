@@ -57,7 +57,11 @@ Suggested description for data sync:
 The same service as above, on Android 14 and earlier only. Those versions have no media processing type and Android 14 requires a type, so the service runs as data sync there. The permission is limited to those versions with maxSdkVersion 34. On Android 15 and later the service runs as media processing.
 ```
 
-Play also asks for a short video showing the service in use: record the app starting a read, the app being sent to the background, and the notification advancing and offering Pause.
+Play also asks for a link to a short video showing the service in use. `foreground-service-demo.mp4` in this folder is that video, 56 seconds, with a spoken commentary and the same words as captions. Play takes a link, not a file, so upload it somewhere it can be watched (an unlisted YouTube video works) and paste the link.
+
+What it shows, in order: the app opened and reading 163 screenshots; the second pass, Adding Bangla, beginning; the app sent to the background; the notification counting up with the time left and a Pause action; Pause tapped and the notification saying reading is paused; the app opened again showing it paused; Resume tapped and the reading going on.
+
+It was recorded on an Android 17 emulator from the release build of 1.2.1. Every screenshot in it is invented, drawn by `tools/demo.py` and variations of its pages. The voice is the Mac's own (Samantha).
 
 ## Government, financial, health and news declarations
 

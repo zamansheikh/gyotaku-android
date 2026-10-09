@@ -12,6 +12,7 @@ What is in this folder, and what is still needed that a file cannot provide.
 | `icon-512.png` | Store icon |
 | `feature-graphic.png` | Feature graphic |
 | `screenshots/` | Eight phone screenshots |
+| `foreground-service-demo.mp4` | The video the foreground service declaration asks for. Upload it and give Play the link |
 | `tools/` | The two scripts that drew the demo content and composed the screenshots |
 
 The app bundle to upload is built with `flutter build appbundle --release` and lands in `build/app/outputs/bundle/release/app-release.aab`. It is signed with the key named in `android/key.properties`, which becomes the upload key.
