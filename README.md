@@ -1,6 +1,17 @@
+<p align="center">
+  <img src="docs/icon-mockup.png" alt="The gyotaku icon: a fish drawn in lines of text, with one line in vermilion, shown large and as round, squircle and themed launcher icons" width="100%" />
+</p>
+
 # gyotaku for Android
 
 Search every screenshot on your phone by the text inside it. Everything is read on the phone; nothing is uploaded.
+
+<p align="center">
+  <img src="docs/screen-01.png" alt="Searching for wifi finds two screenshots" width="24%" />
+  <img src="docs/screen-03.png" alt="An open screenshot with the matching lines lit" width="24%" />
+  <img src="docs/screen-06.png" alt="The text of a Bangla screenshot" width="24%" />
+  <img src="docs/screen-07.png" alt="Reading in the background with a progress bar" width="24%" />
+</p>
 
 **This is an unofficial community app.** It is built on [gyotaku](https://github.com/xevrion/gyotaku), the desktop app by Yash Bavadiya, and uses that project's own index, search and readers. It is maintained here, separately, by Zaman Sheikh. Please report problems with the Android app in [this repository's issues](https://github.com/zamansheikh/gyotaku-android/issues), not to the desktop project.
 
@@ -103,7 +114,7 @@ Several ML Kit readers at once are not used: on the same phone 2, 3, 4 and 6 at 
 
 ## Credits and license
 
-gyotaku was created by [Yash Bavadiya](https://github.com/xevrion). The name and the fish mark are that project's. Its author asked that the Android app live in its own repository under its own package name, marked as unofficial, and offered to link it as a community app. The icon files in this repository are drawn from `assets/icon.svg` in xevrion/gyotaku.
+gyotaku was created by [Yash Bavadiya](https://github.com/xevrion). The name and the fish mark are that project's. Its author asked that the Android app live in its own repository under its own package name, marked as unofficial, and offered to link it as a community app. The icon files in this repository are drawn from `assets/icon.svg` in xevrion/gyotaku. The icon is a fish drawn in lines of text, the way a screenshot holds them, with the one line the search found in vermilion. The screenshots above show invented content, not anyone's real messages or receipts.
 
 Text recognition: ML Kit, PaddleOCR PP-OCRv6 and PP-OCRv5 models, and EasyOCR's Bengali model, run on ONNX Runtime. Typeface: IBM Plex Sans, under the SIL Open Font License 1.1 (`fonts/OFL.txt`).
 
