@@ -78,7 +78,7 @@ First release on Google Play.
 | Free or paid | Free |
 | Contains ads | No |
 | In-app purchases | No |
-| Contact email | yours, shown publicly on the listing |
+| Contact email | yours to choose, shown publicly on the listing |
 | Website | https://zamansheikh.github.io/gyotaku-android/ |
 | Privacy policy URL | https://zamansheikh.github.io/gyotaku-android/privacy/ |
 | Support page | https://zamansheikh.github.io/gyotaku-android/support/ |
@@ -93,3 +93,5 @@ First release on Google Play.
 | `screenshots/screenshot-01.png` to `08.png` | Phone screenshots | 1242 x 2208 (9:16) |
 
 Every screenshot shown inside the phone frames is made up for this listing. No real person's messages, accounts or receipts appear.
+
+https://youtube.com/shorts/M3vNU8AQFkA?feature=share

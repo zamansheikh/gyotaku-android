@@ -115,7 +115,7 @@ Several ML Kit readers at once are not used: on the same phone 2, 3, 4 and 6 at 
 
 ## Credits and license
 
-gyotaku was created by [Yash Bavadiya](https://github.com/xevrion). The name and the fish mark are that project's. Its author asked that the Android app live in its own repository under its own package name, marked as unofficial, and offered to link it as a community app. The icon files in this repository are drawn from `assets/icon.svg` in xevrion/gyotaku. The icon is a fish drawn in lines of text, the way a screenshot holds them, with the one line the search found in vermilion. The screenshots above show invented content, not anyone's real messages or receipts.
+gyotaku was created by [Yash Bavadiya](https://github.com/xevrion). The name and the fish mark are that project's, used here with its author's agreement. He asked that the Android app live in its own repository under its own package name, marked as unofficial, and offered to link it as a community app. The icon files in this repository are drawn from `assets/icon.svg` in xevrion/gyotaku. The icon is a fish drawn in lines of text, the way a screenshot holds them, with the one line the search found in vermilion. The screenshots above show invented content, not anyone's real messages or receipts.
 
 Text recognition: ML Kit, PaddleOCR PP-OCRv6 and PP-OCRv5 models, and EasyOCR's Bengali model, run on ONNX Runtime. Typeface: IBM Plex Sans, under the SIL Open Font License 1.1 (`fonts/OFL.txt`).
 

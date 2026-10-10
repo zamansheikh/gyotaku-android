@@ -24,13 +24,17 @@ Age groups: 18 and over is the simplest choice. The app is not designed for chil
 
 Contains ads: No.
 
+## Advertising ID
+
+Does your app use an advertising ID: No. The manifest of the 1.2.1 bundle has no `com.google.android.gms.permission.AD_ID`.
+
 ## App access
 
 All functionality is available without special access. No login.
 
 ## Photo and video permissions declaration
 
-Play asks apps that request `READ_MEDIA_IMAGES` to justify broad access to photos.
+Play asks apps that request `READ_MEDIA_IMAGES` to justify broad access to photos. The app requests no video permission, so only the photo half applies.
 
 Core functionality: yes. Suggested description:
 
