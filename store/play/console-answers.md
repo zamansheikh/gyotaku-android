@@ -36,7 +36,13 @@ All functionality is available without special access. No login.
 
 Play asks apps that request `READ_MEDIA_IMAGES` to justify broad access to photos. The app requests no video permission, so only the photo half applies.
 
-Core functionality: yes. Suggested description:
+Core functionality: yes. The box takes 250 characters at most. This is 248:
+
+```
+Core function: gyotaku reads the text in every screenshot on the device and indexes it so the user can search them. It must find new screenshots as they are saved, so a photo picker cannot serve. Images are only read, on the device, never uploaded.
+```
+
+The longer version, for a reviewer who asks for more:
 
 ```
 gyotaku is a screenshot search app. Its core function is to read the text in every screenshot on the device and index it so the user can search their screenshots by content. This requires persistent, broad read access to the user's images: new screenshots must be found and read as they are saved, across the folders the user has enabled, without the user selecting each one. The system photo picker cannot serve this use, because the app must process the whole library and keep it up to date. Images are read on the device only and are never uploaded, modified or deleted. Only READ_MEDIA_IMAGES is requested; the app does not request access to videos.
@@ -61,7 +67,7 @@ Suggested description for data sync:
 The same service as above, on Android 14 and earlier only. Those versions have no media processing type and Android 14 requires a type, so the service runs as data sync there. The permission is limited to those versions with maxSdkVersion 34. On Android 15 and later the service runs as media processing.
 ```
 
-Play also asks for a link to a short video showing the service in use. `foreground-service-demo.mp4` in this folder is that video, 56 seconds, with a spoken commentary and the same words as captions. Play takes a link, not a file, so upload it somewhere it can be watched (an unlisted YouTube video works) and paste the link.
+Play also asks for a link to a short video showing the service in use. `foreground-service-demo.mp4` in this folder is that video, 56 seconds, with a spoken commentary and the same words as captions. Play takes a link, not a file, so it is uploaded here: https://youtube.com/shorts/M3vNU8AQFkA
 
 What it shows, in order: the app opened and reading 163 screenshots; the second pass, Adding Bangla, beginning; the app sent to the background; the notification counting up with the time left and a Pause action; Pause tapped and the notification saying reading is paused; the app opened again showing it paused; Resume tapped and the reading going on.
 
