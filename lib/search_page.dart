@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:photo_manager/photo_manager.dart';
 
 import 'activity.dart';
 import 'ink.dart';
@@ -149,14 +148,20 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     // page below has the one thing to say.
     final bare = _answered && _count == 0 && !_narrowed;
 
-    // Not asked for the photos yet and nothing to search: the whole page
-    // is the app explaining itself. A search field over an empty index
-    // would only be in the way.
-    if (bare && reader.state == ReaderState.unasked) {
+    // Nothing to search and no leave to look for anything: the whole page
+    // is the app explaining itself, before it asks or after it was
+    // refused. A search field over an empty index would only be in the way.
+    if (bare &&
+        (reader.state == ReaderState.unasked ||
+            reader.state == ReaderState.refused)) {
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: Theme.of(context).appBarTheme.systemOverlayStyle!,
         child: Scaffold(
-          body: SafeArea(child: Welcome(onAllow: () => reader.run(ask: true))),
+          body: SafeArea(
+            child: reader.state == ReaderState.unasked
+                ? Welcome(onAllow: () => reader.run(ask: true))
+                : Refused(reader: reader),
+          ),
         ),
       );
     }
@@ -269,15 +274,8 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         );
       }
       return switch (reader.state) {
-        // Shown as the welcome page instead, in `build`.
-        ReaderState.unasked => const SizedBox(),
-        ReaderState.refused => _Notice(
-          icon: Icons.lock_outline,
-          title: 'gyotaku cannot see your screenshots',
-          body: 'Access to photos was not allowed. It can be turned on in the system settings.',
-          action: 'Open settings',
-          onAction: PhotoManager.openSetting,
-        ),
+        // Shown as whole pages instead, in `build`.
+        ReaderState.unasked || ReaderState.refused => const SizedBox(),
         ReaderState.noFolder => _Notice(
           icon: Icons.folder_off_outlined,
           title: 'No folder is turned on',

@@ -4,7 +4,7 @@ gyotaku for Android: an unofficial community app that makes the screenshots on a
 
 ## How it is put together
 
-- `lib/` is the Flutter app. `reader.dart` is the heart: it finds images, reads them and keeps every stage visible. `search_page.dart`, `shot_page.dart`, `settings_sheet.dart`, `folders_page.dart` and `about_page.dart` are the screens. `welcome.dart` is the page shown before the phone has been asked for photos; the system prompt must never appear before it. `activity.dart` is the progress banner, `ink.dart` the dark veil with matches lit.
+- `lib/` is the Flutter app. `reader.dart` is the heart: it finds images, reads them and keeps every stage visible. `search_page.dart`, `shot_page.dart`, `settings_sheet.dart`, `folders_page.dart` and `about_page.dart` are the screens. `welcome.dart` holds the page shown before the phone has been asked for photos, and the one shown after a refusal; the system prompt must never appear before the first. `activity.dart` is the progress banner, `ink.dart` the dark veil with matches lit.
 - `rust/` is a bridge crate over `gyotaku-core` (index, search) and `gyotaku-ocr` (PP-OCRv6 and the extra script readers on ONNX Runtime), exposed with `flutter_rust_bridge`. `rust/src/api/index.rs` is the index, `rust/src/api/reader.rs` the readers.
 - `lib/src/rust/`, `rust/src/frb_generated.rs` and `rust_builder/` are generated. Never edit them; run `flutter_rust_bridge_codegen generate` after changing `rust/src/api`.
 - `android/app/src/main/kotlin/com/silifton/gyotaku/` has two files. `ScanService.kt` is the foreground service and notification. `MainActivity.kt` runs the app in one cached Flutter engine that outlives the window.
@@ -32,7 +32,7 @@ When both are merged, point the dependency at `xevrion/gyotaku` and drop the for
 - **A behaviour is finished when it has run for real**, on an emulator or phone, in a release build. Debug builds hide release-only failures (see traps).
 - **The app is unofficial** and says so in the README, the about page and the listing. Keep that wording when editing any of them.
 - **Copy:** clear, plain English, sentence case headings. No em dashes and no unicode arrows anywhere, including code comments and commits. Comments explain why, not what.
-- **Design:** the screenshots are the colour; chrome is off white or near black, IBM Plex Sans. Vermilion (`shu`) only ever means "the search found this". Selection is ink. Nothing animates on its own.
+- **Design:** the screenshots are the colour; chrome is off white or near black, IBM Plex Sans. Vermilion (`shu`) only ever means "the search found this". Selection is ink. Nothing animates on its own, with one exception asked for by the maintainer: the example search on the welcome page, which stays still where the phone is set to reduce motion.
 - **Commits** follow Conventional Commits (`feat(mobile):`, `fix:`, `docs:`), with a body that says why and what was measured.
 
 ## Traps already fallen into
