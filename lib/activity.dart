@@ -6,9 +6,14 @@ import 'theme.dart';
 /// What the reader is doing right now, in words and a bar: looking through
 /// the folders, downloading a model, reading. Nothing when it is idle.
 class Activity extends StatelessWidget {
-  const Activity({super.key, required this.reader});
+  const Activity({super.key, required this.reader, this.footer});
 
   final Reader reader;
+
+  /// Something to say about the reading under way, at the foot of the
+  /// notice and gone with it. It draws its own rule above itself, or
+  /// nothing at all when it has nothing to say.
+  final Widget? footer;
 
   static String _mb(int kb) => (kb / 1024).toStringAsFixed(1);
 
@@ -105,7 +110,7 @@ class Activity extends StatelessWidget {
                         ],
                       ),
                     ),
-                    _Button(label: 'Resume', onTap: reader.resume),
+                    PillButton(label: 'Resume', onTap: reader.resume),
                   ],
                 ),
                 if (failed > 0 || trouble != null) const SizedBox(height: 12),
@@ -129,7 +134,7 @@ class Activity extends StatelessWidget {
                         style: TextStyle(fontSize: 13, color: p.muted),
                       )
                     else if (reading)
-                      _Button(label: 'Pause', onTap: reader.pause),
+                      PillButton(label: 'Pause', onTap: reader.pause),
                   ],
                 ),
                 if (detail!.isNotEmpty) ...[
@@ -262,6 +267,7 @@ class Activity extends StatelessWidget {
                   ),
                 ],
               ],
+              ?footer,
             ],
           ),
         );
@@ -271,8 +277,8 @@ class Activity extends StatelessWidget {
 }
 
 /// A word to press, sized for a thumb without shouting like a filled button.
-class _Button extends StatelessWidget {
-  const _Button({required this.label, required this.onTap});
+class PillButton extends StatelessWidget {
+  const PillButton({super.key, required this.label, required this.onTap});
 
   final String label;
   final VoidCallback onTap;

@@ -245,8 +245,10 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                         ],
                       ),
               ),
-              Activity(reader: reader),
-              NoticeCard(reader: reader),
+              Activity(
+                reader: reader,
+                footer: NoticeAsk(reader: reader),
+              ),
               Expanded(child: _body(context)),
             ],
           ),

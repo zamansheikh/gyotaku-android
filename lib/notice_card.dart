@@ -4,43 +4,40 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'mark.dart';
+import 'activity.dart';
 import 'reader.dart';
 import 'theme.dart';
 
-/// Asks whether the reading progress may be shown in a notification, in
-/// the app's own words, before Android asks in its.
+/// Offers the progress notification, in the app's own words, before
+/// Android asks in its. One line at the foot of the progress notice, and
+/// only while a long read is under way: that is when someone will put the
+/// app away before it is over, and the only time the notification is worth
+/// having. A read of a few seconds is never interrupted with it, and once
+/// the reading is done the line is gone with the notice.
 ///
-/// It sits under the progress banner with a picture of the notification
-/// itself, and it is not in the way: reading goes on whatever is answered.
-/// The system's prompt only comes after "Show progress".
-///
-/// "Not now" means not now. The first time, the card is there as soon as
-/// anything is read. After a no it comes back only while a long read is
-/// under way, which is when the notification is worth having, and not
-/// before a day has gone by; after a second no, a week. A third is taken
-/// as the answer and the card is not shown again. The switch stays in
-/// settings throughout.
-class NoticeCard extends StatefulWidget {
-  const NoticeCard({super.key, required this.reader});
+/// The system's prompt only comes after "Turn on". Closing the line means
+/// not now: it is left alone for a day, then a week, and a third no is
+/// taken as the answer. The switch stays in settings throughout.
+class NoticeAsk extends StatefulWidget {
+  const NoticeAsk({super.key, required this.reader});
 
   final Reader reader;
 
   @override
-  State<NoticeCard> createState() => _NoticeCardState();
+  State<NoticeAsk> createState() => _NoticeAskState();
 }
 
-class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
+class _NoticeAskState extends State<NoticeAsk> with WidgetsBindingObserver {
   // How long a no is left alone: after the first, and after the second.
-  // After one more than there are waits, the card stops asking.
+  // After one more than there are waits, the line stops asking.
   static const _waits = [Duration(days: 1), Duration(days: 7)];
 
-  // Nothing is shown until both are known, so the card never flashes up
+  // Nothing is shown until both are known, so the line never flashes up
   // on a phone that already allows notifications.
   bool? _allowed;
   _Asks? _asks;
 
-  // Once up, the card stays until it is answered. A read that turns out
+  // Once up, the line stays for the rest of the read. One that turns out
   // shorter than it looked must not take it away mid-sentence.
   bool _showing = false;
 
@@ -72,36 +69,32 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
     if (mounted) setState(() => _allowed = allowed);
   }
 
+  static bool _reading(Reader reader) =>
+      reader.state == ReaderState.reading ||
+      reader.state == ReaderState.preparing;
+
   /// A read long enough that someone will put the app away before it is
   /// over: the slow second pass, the wait for its readers, or a first pass
-  /// with more than a minute to go.
+  /// with more than half a minute to go.
   static bool _long(Reader reader) => switch (reader.state) {
     ReaderState.preparing => true,
     ReaderState.reading =>
       reader.deep ||
           reader.next != null ||
-          (reader.left ?? Duration.zero) > const Duration(minutes: 1),
+          (reader.left ?? Duration.zero) > const Duration(seconds: 30),
     _ => false,
   };
 
   bool _due(Reader reader) {
     final asks = _asks;
-    if (asks == null) return false;
-    if (asks.refusals == 0) {
-      return switch (reader.state) {
-        ReaderState.checking ||
-        ReaderState.preparing ||
-        ReaderState.reading ||
-        ReaderState.done => true,
-        _ => false,
-      };
-    }
-    if (asks.refusals > _waits.length) return false;
+    if (asks == null || asks.refusals > _waits.length) return false;
+    if (!_long(reader)) return false;
+    if (asks.refusals == 0) return true;
     final since = DateTime.now().difference(asks.at);
-    return since >= _waits[asks.refusals - 1] && _long(reader);
+    return since >= _waits[asks.refusals - 1];
   }
 
-  /// Whether this is the last time the card will ask by itself.
+  /// Whether this is the last time the line will ask by itself.
   bool get _last => (_asks?.refusals ?? 0) >= _waits.length;
 
   Future<void> _answer({required bool ask}) async {
@@ -130,165 +123,78 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
     }
   }
 
+  // Listens for itself: whoever holds this may not build it again each
+  // time the reader moves on.
   @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.reader,
-      builder: (context, _) {
-        if (_allowed != false) {
-          _showing = false;
-          return const SizedBox.shrink();
-        }
-        if (!_showing && _due(widget.reader)) _showing = true;
-        if (!_showing) return const SizedBox.shrink();
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.reader,
+    builder: (context, _) => _line(context),
+  );
 
-        final p = Palette.of(context);
-        final again = (_asks?.refusals ?? 0) > 0;
-        return Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-          decoration: BoxDecoration(
-            color: p.tile,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Picture(),
-              const SizedBox(height: 14),
-              Text(
-                'See the progress outside the app',
-                style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w600,
-                  color: p.text,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                again
-                    ? 'This part takes a while, and it carries on when '
-                          'gyotaku is put away. A notification can show '
-                          'how far it has got, with a button to pause it.'
-                    : 'Reading carries on when gyotaku is put away. A '
-                          'notification can show how far it has got, with '
-                          'a button to pause it. gyotaku sends no other '
-                          'kind.',
-                style: TextStyle(fontSize: 13.5, height: 1.4, color: p.muted),
-              ),
-              if (_last) ...[
-                const SizedBox(height: 6),
-                Text(
-                  'This is the last time gyotaku asks. The switch stays in '
-                  'settings.',
-                  style: TextStyle(fontSize: 13, height: 1.4, color: p.faint),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
+  Widget _line(BuildContext context) {
+    final reader = widget.reader;
+    if (_allowed != false || !_reading(reader)) {
+      _showing = false;
+      return const SizedBox.shrink();
+    }
+    if (!_showing && _due(reader)) _showing = true;
+    if (!_showing) return const SizedBox.shrink();
+
+    final p = Palette.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 12),
+        Container(height: 1, color: p.track),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(Icons.notifications_none, size: 19, color: p.muted),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkButton(
-                    label: 'Show progress',
-                    onPressed: () => _answer(ask: true),
-                  ),
-                  const SizedBox(width: 6),
-                  TextButton(
-                    onPressed: () => _answer(ask: false),
-                    style: TextButton.styleFrom(
-                      foregroundColor: p.muted,
-                      minimumSize: const Size(0, 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      textStyle: const TextStyle(
-                        fontFamily: 'IBM Plex Sans',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Text(
+                    'Progress notification',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: p.text,
                     ),
-                    child: Text(_last ? 'No thanks' : 'Not now'),
+                  ),
+                  Text(
+                    _last
+                        ? 'Last time of asking. It stays in settings'
+                        : 'See this with the app put away',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.3,
+                      color: p.muted,
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// The notification as it will look, near enough: the mark, what is being
-/// read, how far along, and Pause. A picture, so its text keeps its size.
-class _Picture extends StatelessWidget {
-  const _Picture();
-
-  @override
-  Widget build(BuildContext context) {
-    final p = Palette.of(context);
-    return ExcludeSemantics(
-      child: MediaQuery.withNoTextScaling(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 11, 14, 11),
-          decoration: BoxDecoration(
-            color: p.panel,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Mark(size: 30),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'gyotaku',
-                      style: TextStyle(fontSize: 11.5, color: p.muted),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'Reading screenshots',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: p.text,
-                      ),
-                    ),
-                    Text(
-                      '128 of 163, about 12 s left',
-                      style: TextStyle(fontSize: 12.5, color: p.muted),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(2),
-                      child: LinearProgressIndicator(
-                        value: 128 / 163,
-                        minHeight: 3,
-                        backgroundColor: p.track,
-                        valueColor: AlwaysStoppedAnimation(p.text),
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    Text(
-                      'Pause',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: p.text,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            PillButton(label: 'Turn on', onTap: () => _answer(ask: true)),
+            IconButton(
+              onPressed: () => _answer(ask: false),
+              icon: const Icon(Icons.close, size: 18),
+              color: p.muted,
+              tooltip: 'Not now',
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 }
 
-/// How many times the card has been told no, and when last. Kept in a
+/// How many times the offer has been told no, and when last. Kept in a
 /// small file beside the app's other choices.
 class _Asks {
   const _Asks(this.refusals, this.at);
@@ -296,7 +202,7 @@ class _Asks {
   final int refusals;
   final DateTime at;
 
-  // Where there is no telling, the card keeps quiet: better none than one
+  // Where there is no telling, the line keeps quiet: better none than one
   // that comes back every time.
   static final _unknown = _Asks(1 << 20, DateTime.now());
 
