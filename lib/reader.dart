@@ -117,6 +117,12 @@ class Reader extends ChangeNotifier {
   }
 
   final _notice = ScanNotice();
+
+  /// Whether the progress notification would be seen.
+  Future<bool> noticeAllowed() => _notice.allowed();
+
+  /// Brings up the system's prompt for the progress notification.
+  Future<void> askForNotice() => _notice.ask();
   Future<void>? _remembered;
   bool _running = false;
   bool _again = false;
@@ -314,8 +320,10 @@ class Reader extends ChangeNotifier {
     }
 
     // From here on it can take a while, so it goes on with the window put
-    // away, behind a notification.
-    await _notice.ask();
+    // away, behind a notification. Leave to show it is asked for by the
+    // card on the search page, not here: a second system prompt straight
+    // after the one for photos, with nothing said about it, was refused
+    // as often as not.
     _finished = 0;
     failed = 0;
     failure = null;

@@ -1,6 +1,7 @@
 package com.silifton.gyotaku
 
 import android.Manifest
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -79,6 +80,13 @@ class MainActivity : FlutterActivity() {
                         )
                         result.success(null)
                     }
+                    // Whether a notification would be seen: the permission
+                    // on Android 13 and later, and the switch in the
+                    // system settings on every version.
+                    "allowed" -> result.success(
+                        app.getSystemService(NotificationManager::class.java)
+                            ?.areNotificationsEnabled() ?: false,
+                    )
                     "ask" -> {
                         // Android 13 and later show nothing until asked.
                         val activity = front.get()

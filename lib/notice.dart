@@ -18,17 +18,23 @@ class ScanNotice {
     });
   }
 
-  bool _asked = false;
   DateTime _shown = DateTime.fromMillisecondsSinceEpoch(0);
   String? _last;
 
-  /// Asks for leave to show notifications, once, the first time there is
-  /// something to show.
-  Future<void> ask() async {
-    if (_asked) return;
-    _asked = true;
-    await _call('ask');
+  /// Whether a notification would be seen. True where there is no telling,
+  /// so nothing is asked for on a system that has nothing to ask.
+  Future<bool> allowed() async {
+    try {
+      return await _channel.invokeMethod<bool>('allowed') ?? true;
+    } catch (e) {
+      return true;
+    }
   }
+
+  /// Brings up the system's prompt for leave to show notifications. Only
+  /// ever called from a button that says what the notification is for:
+  /// the reading goes on without it, just unseen.
+  Future<void> ask() => _call('ask');
 
   /// Shows or moves the progress. `total` of 0 means "working, no telling
   /// how long". Calls that come faster than Android wants are dropped,

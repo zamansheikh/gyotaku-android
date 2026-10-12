@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'activity.dart';
 import 'ink.dart';
+import 'notice_card.dart';
 import 'reader.dart';
 import 'settings_sheet.dart';
 import 'shot_page.dart';
@@ -245,6 +246,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
                       ),
               ),
               Activity(reader: reader),
+              NoticeCard(reader: reader),
               Expanded(child: _body(context)),
             ],
           ),
