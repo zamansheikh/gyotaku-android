@@ -31,10 +31,27 @@ class ScanNotice {
     }
   }
 
-  /// Brings up the system's prompt for leave to show notifications. Only
-  /// ever called from a button that says what the notification is for:
-  /// the reading goes on without it, just unseen.
-  Future<void> ask() => _call('ask');
+  /// Asks Android for leave to show notifications, and comes back once
+  /// that is answered. Only ever called from something that says what the
+  /// notification is for: the reading goes on without it, just unseen.
+  ///
+  /// Android puts its question twice and no more, and before Android 13
+  /// has a switch in its settings and no question at all. Where it will
+  /// not ask, its settings for the app are opened at that switch instead.
+  Future<void> ask() async {
+    String? answer;
+    try {
+      answer = await _channel.invokeMethod<String>('ask');
+    } on MissingPluginException {
+      // No such service on this system.
+    } catch (e) {
+      debugPrint('gyotaku: notification ask failed: $e');
+    }
+    if (answer == 'unasked') await settings();
+  }
+
+  /// Opens the system's settings for this app's notifications.
+  Future<void> settings() => _call('settings');
 
   /// Shows or moves the progress. `total` of 0 means "working, no telling
   /// how long". Calls that come faster than Android wants are dropped,

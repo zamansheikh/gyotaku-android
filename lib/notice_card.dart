@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,11 +11,16 @@ import 'theme.dart';
 /// Asks whether the reading progress may be shown in a notification, in
 /// the app's own words, before Android asks in its.
 ///
-/// It sits under the progress banner once there is something being read,
-/// with a picture of the notification itself, and it is not in the way:
-/// reading goes on whatever is answered. The system's prompt only comes
-/// after "Show progress". "Not now" is remembered and the card is not
-/// shown again.
+/// It sits under the progress banner with a picture of the notification
+/// itself, and it is not in the way: reading goes on whatever is answered.
+/// The system's prompt only comes after "Show progress".
+///
+/// "Not now" means not now. The first time, the card is there as soon as
+/// anything is read. After a no it comes back only while a long read is
+/// under way, which is when the notification is worth having, and not
+/// before a day has gone by; after a second no, a week. A third is taken
+/// as the answer and the card is not shown again. The switch stays in
+/// settings throughout.
 class NoticeCard extends StatefulWidget {
   const NoticeCard({super.key, required this.reader});
 
@@ -25,18 +31,26 @@ class NoticeCard extends StatefulWidget {
 }
 
 class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
+  // How long a no is left alone: after the first, and after the second.
+  // After one more than there are waits, the card stops asking.
+  static const _waits = [Duration(days: 1), Duration(days: 7)];
+
   // Nothing is shown until both are known, so the card never flashes up
   // on a phone that already allows notifications.
   bool? _allowed;
-  bool? _answered;
+  _Asks? _asks;
+
+  // Once up, the card stays until it is answered. A read that turns out
+  // shorter than it looked must not take it away mid-sentence.
+  bool _showing = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _look();
-    _Answered.get().then((answered) {
-      if (mounted) setState(() => _answered = answered);
+    _Asks.load().then((asks) {
+      if (mounted) setState(() => _asks = asks);
     });
   }
 
@@ -58,10 +72,62 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
     if (mounted) setState(() => _allowed = allowed);
   }
 
+  /// A read long enough that someone will put the app away before it is
+  /// over: the slow second pass, the wait for its readers, or a first pass
+  /// with more than a minute to go.
+  static bool _long(Reader reader) => switch (reader.state) {
+    ReaderState.preparing => true,
+    ReaderState.reading =>
+      reader.deep ||
+          reader.next != null ||
+          (reader.left ?? Duration.zero) > const Duration(minutes: 1),
+    _ => false,
+  };
+
+  bool _due(Reader reader) {
+    final asks = _asks;
+    if (asks == null) return false;
+    if (asks.refusals == 0) {
+      return switch (reader.state) {
+        ReaderState.checking ||
+        ReaderState.preparing ||
+        ReaderState.reading ||
+        ReaderState.done => true,
+        _ => false,
+      };
+    }
+    if (asks.refusals > _waits.length) return false;
+    final since = DateTime.now().difference(asks.at);
+    return since >= _waits[asks.refusals - 1] && _long(reader);
+  }
+
+  /// Whether this is the last time the card will ask by itself.
+  bool get _last => (_asks?.refusals ?? 0) >= _waits.length;
+
   Future<void> _answer({required bool ask}) async {
-    setState(() => _answered = true);
-    await _Answered.set();
-    if (ask) await widget.reader.askForNotice();
+    final last = _last;
+    if (ask) {
+      await widget.reader.askForNotice();
+      final allowed = await widget.reader.noticeAllowed();
+      if (!mounted) return;
+      setState(() => _allowed = allowed);
+      if (allowed) return;
+    }
+    // A no here, or one given to Android's prompt, counts the same.
+    final asks = _Asks((_asks?.refusals ?? 0) + 1, DateTime.now());
+    setState(() {
+      _asks = asks;
+      _showing = false;
+    });
+    await asks.save();
+    if (!ask && mounted) {
+      say(
+        context,
+        last
+            ? 'It can still be turned on in settings'
+            : 'It can be turned on in settings whenever you like',
+      );
+    }
   }
 
   @override
@@ -69,17 +135,15 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
     return ListenableBuilder(
       listenable: widget.reader,
       builder: (context, _) {
-        final reading = switch (widget.reader.state) {
-          ReaderState.checking ||
-          ReaderState.preparing ||
-          ReaderState.reading ||
-          ReaderState.done => true,
-          _ => false,
-        };
-        if (!reading || _allowed != false || _answered != false) {
+        if (_allowed != false) {
+          _showing = false;
           return const SizedBox.shrink();
         }
+        if (!_showing && _due(widget.reader)) _showing = true;
+        if (!_showing) return const SizedBox.shrink();
+
         final p = Palette.of(context);
+        final again = (_asks?.refusals ?? 0) > 0;
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
@@ -102,11 +166,24 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 4),
               Text(
-                'Reading carries on when gyotaku is put away. A '
-                'notification can show how far it has got, with a button '
-                'to pause it. gyotaku sends no other kind.',
+                again
+                    ? 'This part takes a while, and it carries on when '
+                          'gyotaku is put away. A notification can show '
+                          'how far it has got, with a button to pause it.'
+                    : 'Reading carries on when gyotaku is put away. A '
+                          'notification can show how far it has got, with '
+                          'a button to pause it. gyotaku sends no other '
+                          'kind.',
                 style: TextStyle(fontSize: 13.5, height: 1.4, color: p.muted),
               ),
+              if (_last) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'This is the last time gyotaku asks. The switch stays in '
+                  'settings.',
+                  style: TextStyle(fontSize: 13, height: 1.4, color: p.faint),
+                ),
+              ],
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -127,7 +204,7 @@ class _NoticeCardState extends State<NoticeCard> with WidgetsBindingObserver {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    child: const Text('Not now'),
+                    child: Text(_last ? 'No thanks' : 'Not now'),
                   ),
                 ],
               ),
@@ -211,31 +288,50 @@ class _Picture extends StatelessWidget {
   }
 }
 
-/// Whether the card has been answered, kept as a file that is there or
-/// isn't, like the pause.
-class _Answered {
+/// How many times the card has been told no, and when last. Kept in a
+/// small file beside the app's other choices.
+class _Asks {
+  const _Asks(this.refusals, this.at);
+
+  final int refusals;
+  final DateTime at;
+
+  // Where there is no telling, the card keeps quiet: better none than one
+  // that comes back every time.
+  static final _unknown = _Asks(1 << 20, DateTime.now());
+
   static Future<File?> _file() async {
     try {
       final dir = await getApplicationSupportDirectory();
-      return File('${dir.path}/notice-answered');
+      return File('${dir.path}/notice-asks.json');
     } catch (e) {
       return null;
     }
   }
 
-  // Not knowing counts as answered: better no card than one that comes
-  // back every time.
-  static Future<bool> get() async {
+  static Future<_Asks> load() async {
     try {
-      return await (await _file())?.exists() ?? true;
+      final file = await _file();
+      if (file == null) return _unknown;
+      if (!await file.exists()) {
+        return _Asks(0, DateTime.fromMillisecondsSinceEpoch(0));
+      }
+      final saved = jsonDecode(await file.readAsString()) as Map;
+      return _Asks(
+        saved['refusals'] as int,
+        DateTime.fromMillisecondsSinceEpoch(saved['at'] as int),
+      );
     } catch (e) {
-      return true;
+      debugPrint('gyotaku: could not load the notification answers: $e');
+      return _unknown;
     }
   }
 
-  static Future<void> set() async {
+  Future<void> save() async {
     try {
-      await (await _file())?.create(recursive: true);
+      await (await _file())?.writeAsString(
+        jsonEncode({'refusals': refusals, 'at': at.millisecondsSinceEpoch}),
+      );
     } catch (e) {
       debugPrint('gyotaku: could not remember the notification answer: $e');
     }

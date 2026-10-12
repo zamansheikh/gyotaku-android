@@ -121,8 +121,12 @@ class Reader extends ChangeNotifier {
   /// Whether the progress notification would be seen.
   Future<bool> noticeAllowed() => _notice.allowed();
 
-  /// Brings up the system's prompt for the progress notification.
+  /// Asks Android for leave to show the progress notification, or opens
+  /// its settings for the app where it will not ask. See `ScanNotice.ask`.
   Future<void> askForNotice() => _notice.ask();
+
+  /// Opens the system's settings for this app's notifications.
+  Future<void> openNoticeSettings() => _notice.settings();
   Future<void>? _remembered;
   bool _running = false;
   bool _again = false;

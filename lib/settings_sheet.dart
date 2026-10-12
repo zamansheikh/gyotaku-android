@@ -39,8 +39,11 @@ class _Settings extends StatefulWidget {
   State<_Settings> createState() => _SettingsState();
 }
 
-class _SettingsState extends State<_Settings> {
+class _SettingsState extends State<_Settings> with WidgetsBindingObserver {
   List<own.ScriptChoice> _scripts = const [];
+
+  /// Whether the progress notification would be seen, once known.
+  bool? _notice;
 
   /// "Screenshots and 2 more", or what stands in for it.
   String _folders = '';
@@ -48,8 +51,39 @@ class _SettingsState extends State<_Settings> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadScripts();
     _loadFolders();
+    _loadNotice();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Android's prompt and its settings both take the app off the screen,
+  // and either may have changed the answer by the time it is back.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadNotice();
+  }
+
+  Future<void> _loadNotice() async {
+    final allowed = await widget.reader.noticeAllowed();
+    if (mounted) setState(() => _notice = allowed);
+  }
+
+  /// Off: asks Android, or opens its settings where it will not ask. On:
+  /// opens those settings, which is where it is turned off.
+  Future<void> _changeNotice() async {
+    if (_notice == true) {
+      await widget.reader.openNoticeSettings();
+    } else {
+      await widget.reader.askForNotice();
+    }
+    await _loadNotice();
   }
 
   Future<void> _loadScripts() async {
@@ -240,15 +274,17 @@ class _SettingsState extends State<_Settings> {
               child: const Text('Read everything again'),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
-            child: Text(
-              'Reading carries on when gyotaku is put away, with its progress '
-              'in a notification, even after it is swiped closed. It can be '
-              'paused there or here, and stays paused until resumed.',
-              style: TextStyle(fontSize: 13, height: 1.4, color: p.faint),
-            ),
+          heading('In the background'),
+          note(
+            'Reading carries on when gyotaku is put away, even after it is '
+            'swiped closed. It can be paused here or from its notification, '
+            'and stays paused until resumed.',
           ),
+          link('Progress notification', switch (_notice) {
+            true => 'On. Shows how far reading has got, with Pause',
+            false => 'Off. Tap to turn it on',
+            null => '',
+          }, _changeNotice),
           link('About gyotaku', '', () {
             final navigator = Navigator.of(context);
             navigator.pop();

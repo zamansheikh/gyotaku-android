@@ -3,10 +3,14 @@ package com.silifton.gyotaku
 import android.Manifest
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -37,8 +41,36 @@ class MainActivity : FlutterActivity() {
         super.onDestroy()
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != ASK_NOTIFICATIONS) return
+        val allowed = getSystemService(NotificationManager::class.java)
+            ?.areNotificationsEnabled() == true
+        // Android puts the question twice and after that answers no by
+        // itself. It does not say which happened, but a no that comes back
+        // faster than anyone could read a prompt means none was shown.
+        val unasked = SystemClock.elapsedRealtime() - askedAt < NO_PROMPT_MS
+        answer(if (allowed) "granted" else if (unasked) "unasked" else "denied")
+    }
+
     companion object {
         private const val ENGINE = "gyotaku"
+        private const val ASK_NOTIFICATIONS = 4107
+        private const val NO_PROMPT_MS = 600L
+
+        // The ask for notifications under way, if there is one, and when it
+        // was put.
+        private var asking: MethodChannel.Result? = null
+        private var askedAt = 0L
+
+        private fun answer(said: String) {
+            asking?.success(said)
+            asking = null
+        }
 
         // The window on screen, if there is one, for the one thing that
         // needs it: asking for a permission.
@@ -87,20 +119,60 @@ class MainActivity : FlutterActivity() {
                         app.getSystemService(NotificationManager::class.java)
                             ?.areNotificationsEnabled() ?: false,
                     )
+                    // Puts Android's own question about notifications and
+                    // says how it went: "granted", "denied", or "unasked"
+                    // where there was no putting it. That is with no window
+                    // to ask from, before Android 13, which has a switch in
+                    // its settings and no prompt, and once Android has
+                    // stopped asking.
                     "ask" -> {
-                        // Android 13 and later show nothing until asked.
                         val activity = front.get()
-                        if (activity != null &&
-                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                            activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
-                            PackageManager.PERMISSION_GRANTED
-                        ) {
-                            activity.requestPermissions(
-                                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                                1,
+                        val allowed = app.getSystemService(NotificationManager::class.java)
+                            ?.areNotificationsEnabled() == true
+                        when {
+                            allowed -> result.success("granted")
+                            activity == null ||
+                                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                                activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+                                PackageManager.PERMISSION_GRANTED -> result.success("unasked")
+                            else -> {
+                                // An earlier ask that never heard back.
+                                answer("denied")
+                                asking = result
+                                askedAt = SystemClock.elapsedRealtime()
+                                activity.requestPermissions(
+                                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                                    ASK_NOTIFICATIONS,
+                                )
+                            }
+                        }
+                    }
+                    // The page of the system's settings with this app's
+                    // notification switch on it.
+                    "settings" -> {
+                        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, app.packageName)
+                        } else {
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", app.packageName, null),
                             )
                         }
-                        result.success(null)
+                        try {
+                            // From the window when there is one, so that
+                            // Back from the settings comes back here and
+                            // not to whatever the settings last showed.
+                            val activity = front.get()
+                            if (activity != null) {
+                                activity.startActivity(intent)
+                            } else {
+                                app.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.success(false)
+                        }
                     }
                     else -> result.notImplemented()
                 }
