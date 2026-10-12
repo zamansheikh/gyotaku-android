@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'mark.dart';
 import 'theme.dart';
 
 const _project = 'https://github.com/xevrion/gyotaku';
@@ -98,7 +99,7 @@ class _AboutPageState extends State<AboutPage> {
                   padding: const EdgeInsets.only(bottom: 32),
                   children: [
                     const SizedBox(height: 20),
-                    const Center(child: _Mark(size: 84)),
+                    const Center(child: Mark(size: 84)),
                     const SizedBox(height: 16),
                     Text(
                       'gyotaku',
@@ -170,6 +171,12 @@ class _AboutPageState extends State<AboutPage> {
                       title: 'Website',
                       detail: 'gyotaku.app',
                       onTap: () => _open(_site),
+                    ),
+                    _Line(
+                      title: 'Privacy policy',
+                      detail:
+                          'Nothing is collected. The whole of it, in a page',
+                      onTap: () => _open(privacyPolicy),
                     ),
                     _Line(
                       title: 'License',
@@ -271,63 +278,4 @@ class _Line extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The app's mark, drawn from the same shapes as `assets/icon.svg`: a fish
-/// in lines of text, with the line the search found in shu.
-class _Mark extends StatelessWidget {
-  const _Mark({required this.size});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: CustomPaint(painter: _MarkPainter(Palette.dark)),
-    );
-  }
-}
-
-class _MarkPainter extends CustomPainter {
-  _MarkPainter(this.p);
-
-  // The icon is the same in both themes, like the one on the home screen.
-  final Palette p;
-
-  static const _bars = [
-    (7.0, 10.5, 8.0),
-    (11.0, 17.0, 8.0),
-    (26.0, 17.0, 18.0),
-    (17.0, 23.5, 33.0),
-    (15.0, 36.5, 34.0),
-    (11.0, 43.0, 8.0),
-    (26.0, 43.0, 18.0),
-    (7.0, 49.5, 8.0),
-  ];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(size.width / 64);
-    RRect pill(double x, double y, double w) => RRect.fromRectAndRadius(
-      Rect.fromLTWH(x, y, w, 4),
-      const Radius.circular(2),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(0, 0, 64, 64),
-        const Radius.circular(14),
-      ),
-      Paint()..color = p.panel,
-    );
-    final ink = Paint()..color = p.text;
-    for (final (x, y, w) in _bars) {
-      canvas.drawRRect(pill(x, y, w), ink);
-    }
-    canvas.drawCircle(const Offset(44.6, 25.5), 1.1, Paint()..color = p.panel);
-    canvas.drawRRect(pill(13, 30, 44), Paint()..color = p.shu);
-  }
-
-  @override
-  bool shouldRepaint(_MarkPainter old) => old.p != p;
 }

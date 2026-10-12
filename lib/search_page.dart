@@ -9,6 +9,7 @@ import 'settings_sheet.dart';
 import 'shot_page.dart';
 import 'src/rust/api/index.dart' as core;
 import 'theme.dart';
+import 'welcome.dart';
 import 'when.dart';
 
 /// The quick date filters. Each is one of the core's own `date:` filters,
@@ -148,6 +149,18 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
     // page below has the one thing to say.
     final bare = _answered && _count == 0 && !_narrowed;
 
+    // Not asked for the photos yet and nothing to search: the whole page
+    // is the app explaining itself. A search field over an empty index
+    // would only be in the way.
+    if (bare && reader.state == ReaderState.unasked) {
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: Theme.of(context).appBarTheme.systemOverlayStyle!,
+        child: Scaffold(
+          body: SafeArea(child: Welcome(onAllow: () => reader.run(ask: true))),
+        ),
+      );
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: Theme.of(context).appBarTheme.systemOverlayStyle!,
       child: Scaffold(
@@ -256,13 +269,8 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         );
       }
       return switch (reader.state) {
-        ReaderState.unasked => _Notice(
-          icon: Icons.photo_library_outlined,
-          title: 'Search your screenshots by the text in them',
-          body: 'gyotaku reads the words in every screenshot on this phone so you can find one by anything you remember seeing. It only reads them, and nothing leaves this device.',
-          action: 'Allow access to photos',
-          onAction: () => reader.run(ask: true),
-        ),
+        // Shown as the welcome page instead, in `build`.
+        ReaderState.unasked => const SizedBox(),
         ReaderState.refused => _Notice(
           icon: Icons.lock_outline,
           title: 'gyotaku cannot see your screenshots',

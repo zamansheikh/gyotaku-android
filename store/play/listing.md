@@ -59,13 +59,11 @@ GOOD TO KNOW
 About the name: gyotaku is a Japanese way of recording a catch by inking a fish and pressing it onto paper. While you search, your screenshots are inked dark and only the words you searched for stay lit.
 ```
 
-## What's new (500 characters at most), for version 1.2.1
+## What's new (500 characters at most), for version 1.2.2
 
 ```
-First release on Google Play.
-• Search screenshots by the text inside them
-• Optional Bangla and Hindi readers
-• Reading continues in the background, with pause
+• A welcome page now says what gyotaku does with your photos, and what it never does, before Android asks for access
+• The privacy policy is linked from the welcome page and the About page
 ```
 
 ## Store settings

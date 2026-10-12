@@ -15,7 +15,7 @@ Everything Play Console asks for, in the order it asks. Prepared for version 1.2
 | `foreground-service-demo.mp4` | The video the foreground service declaration asks for. Upload it and give Play the link |
 | `tools/` | The two scripts that drew the demo content and composed the screenshots |
 
-The app bundle is built with `flutter build appbundle --release` and lands in `build/app/outputs/bundle/release/app-release.aab`. The one built for this submission is `~/Desktop/gyotaku-playstore/gyotaku-1.2.1.aab`. That folder also still holds `gyotaku-1.2.0.aab`; do not upload that one.
+The app bundle is built with `flutter build appbundle --release` and lands in `build/app/outputs/bundle/release/app-release.aab`. The newest is `~/Desktop/gyotaku-playstore/gyotaku-1.2.2.aab` (version code 8), which adds the welcome page shown before the photo prompt. The folder also still holds the 1.2.0 and 1.2.1 bundles; a new upload must have a higher version code than the last one Play was given.
 
 ## Checked on the 1.2.1 bundle
 
