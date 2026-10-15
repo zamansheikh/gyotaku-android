@@ -193,6 +193,21 @@ pub fn search(query: String, limit: u32) -> Result<Vec<Hit>> {
     })
 }
 
+/// When every screenshot `query` finds was taken, in seconds since the
+/// epoch, however many there are. For counting the matches and for showing
+/// which months they fall in. Much cheaper than `search`, which also finds
+/// the lines that matched in each.
+pub fn match_times(query: String) -> Result<Vec<i64>> {
+    with(|i| {
+        Ok(i
+            // As many as there are: SQLite's LIMIT takes an i64.
+            .find(&query, i64::MAX as usize)?
+            .into_iter()
+            .map(|h| h.mtime)
+            .collect())
+    })
+}
+
 /// All the text of one screenshot, top to bottom.
 pub fn shot_lines(id: i64) -> Result<Vec<Line>> {
     with(|i| Ok(i.lines(id)?.into_iter().map(Into::into).collect()))
@@ -259,6 +274,12 @@ mod tests {
         assert_eq!(hits[0].lines, vec![line.clone()]);
         assert!(!hits[0].near);
         assert_eq!(shot_lines(hits[0].id).unwrap(), vec![line]);
+
+        // every match's time, and none outside the dates asked for
+        assert_eq!(match_times("nfirma".into()).unwrap(), vec![1_700_000_000]);
+        assert_eq!(match_times("nfirma date:2023-11".into()).unwrap().len(), 1);
+        assert!(match_times("nfirma date:2024".into()).unwrap().is_empty());
+        assert!(match_times("nowhere".into()).unwrap().is_empty());
 
         // the folder filter reads the path
         assert_eq!(search("in:screenshots".into(), 10).unwrap().len(), 1);

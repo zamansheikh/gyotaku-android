@@ -9,22 +9,9 @@ import 'settings_sheet.dart';
 import 'shot_page.dart';
 import 'src/rust/api/index.dart' as core;
 import 'theme.dart';
+import 'timeline.dart';
 import 'welcome.dart';
 import 'when.dart';
-
-/// The quick date filters. Each is one of the core's own `date:` filters,
-/// added to the query on the way to the index, so a phone gets them without
-/// typing a colon.
-enum _When {
-  today('Today', 'date:today'),
-  yesterday('Yesterday', 'date:yesterday'),
-  week('This week', 'date:week'),
-  month('This month', 'date:month');
-
-  const _When(this.label, this.filter);
-  final String label;
-  final String filter;
-}
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key, required this.reader});
@@ -44,7 +31,18 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   final _scroll = ScrollController();
 
   List<core.Hit> _hits = const [];
-  _When? _when;
+
+  /// The dates the results are narrowed to: a quick chip, a month from the
+  /// strip or days from the calendar. One at a time.
+  DateSpan? _span;
+
+  /// How many screenshots the search finds in all, not just the page shown.
+  int? _total;
+
+  /// When each match of the words typed was taken, whatever dates are
+  /// chosen, for the month strip. And what it was worked out for.
+  List<int>? _spread;
+  String? _spreadFor;
   int _limit = _step;
   int _count = 0;
   int _asked = 0;
@@ -97,7 +95,7 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   }
 
   bool get _typed => _query.text.trim().isNotEmpty;
-  bool get _narrowed => _typed || _when != null;
+  bool get _narrowed => _typed || _span != null;
 
   void _changed() {
     _limit = _step;
@@ -109,19 +107,56 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
   Future<void> _search() async {
     // Answers can come back out of order while typing; only the latest counts.
     final asked = ++_asked;
-    final text = [_query.text, ?_when?.filter].join(' ');
+    final words = _query.text.trim();
+    final text = [_query.text, ?_span?.filter].join(' ');
+    // The month strip is about the words alone, and only worked out again
+    // when they change or the index does.
+    final spreadFor = words.isEmpty
+        ? null
+        : '${widget.reader.generation}|$words';
     try {
       final hits = await core.search(query: text, limit: _limit);
       final count = await core.shotCount();
+      final total = _narrowed
+          ? (await core.matchTimes(query: text)).length
+          : null;
+      final spread = spreadFor == null
+          ? null
+          : spreadFor == _spreadFor
+          ? _spread
+          : [for (final t in await core.matchTimes(query: words)) t.toInt()];
       if (!mounted || asked != _asked) return;
       setState(() {
         _hits = hits;
         _count = count;
+        _total = total;
+        _spread = spread;
+        _spreadFor = spreadFor;
         _answered = true;
       });
     } catch (e) {
       debugPrint('gyotaku: search failed: $e');
     }
+  }
+
+  void _setSpan(DateSpan? span) {
+    HapticFeedback.selectionClick();
+    _span = span;
+    _changed();
+  }
+
+  Future<void> _pickDays() async {
+    _focus.unfocus();
+    final span = await pickDays(context, _span?.range == null ? null : _span);
+    if (span != null && mounted) _setSpan(span);
+  }
+
+  /// Whether the matches are worth showing by month: enough of them to be
+  /// hard to look through, over more than one month.
+  bool get _strip {
+    final spread = _spread;
+    if (!_typed || spread == null || spread.length < 30) return false;
+    return MonthStrip.monthsOf(spread).length > 1;
   }
 
   void _open(int index) {
@@ -135,8 +170,8 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
 
   String _status() {
     if (_narrowed) {
-      final more = _hits.length >= _limit ? '+' : '';
-      return _hits.length == 1 ? '1 match' : '${_hits.length}$more matches';
+      final n = _total ?? _hits.length;
+      return n == 1 ? '1 match' : '${counted(n)} matches';
     }
     return _count == 1 ? '1 screenshot' : '$_count screenshots';
   }
@@ -201,28 +236,43 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
               if (!bare)
                 SizedBox(
                   height: 52,
-                  child: ListView.separated(
+                  child: ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 10,
                     ),
-                    itemCount: _When.values.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (context, i) {
-                      final w = _When.values[i];
-                      return _Chip(
-                        label: w.label,
-                        selected: _when == w,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          _when = _when == w ? null : w;
-                          _changed();
-                        },
-                      );
-                    },
+                    children: [
+                      // First, so it is never scrolled out of sight: any
+                      // dates at all, and what was picked once it is.
+                      _span == null || DateSpan.quick.contains(_span)
+                          ? _Chip(
+                              icon: Icons.calendar_month_outlined,
+                              label: null,
+                              tooltip: 'Pick dates',
+                              selected: false,
+                              onTap: _pickDays,
+                            )
+                          : _Chip(
+                              icon: Icons.calendar_month_outlined,
+                              label: _span!.label,
+                              selected: true,
+                              onTap: _pickDays,
+                              onClear: () => _setSpan(null),
+                            ),
+                      for (final w in DateSpan.quick) ...[
+                        const SizedBox(width: 8),
+                        _Chip(
+                          label: w.label,
+                          selected: _span == w,
+                          onTap: () => _setSpan(_span == w ? null : w),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
+              if (!bare && _strip)
+                MonthStrip(times: _spread!, chosen: _span, onChoose: _setSpan),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 2, 18, 8),
                 child: bare
@@ -266,13 +316,17 @@ class _SearchPageState extends State<SearchPage> with WidgetsBindingObserver {
         return _Notice(
           icon: Icons.search_off,
           title: 'Nothing matches',
-          body: _typed
-              ? 'Every word has to appear in the screenshot. Try fewer words, or a few letters of one.'
-              : 'No screenshots from ${_when!.label.toLowerCase()}.',
-          action: 'Clear search',
+          body: !_typed
+              ? _span!.nothing
+              : _span != null && (_spread?.isNotEmpty ?? false)
+              ? 'There are matches, but none from ${_span!.label}.'
+              : 'Every word has to appear in the screenshot. Try fewer words, or a few letters of one.',
+          action: _typed && _span != null && (_spread?.isNotEmpty ?? false)
+              ? 'Show every date'
+              : 'Clear search',
           onAction: () {
-            _query.clear();
-            _when = null;
+            if (!_typed || (_spread?.isEmpty ?? true)) _query.clear();
+            _span = null;
             _changed();
           },
         );
@@ -456,39 +510,77 @@ class _Chip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.icon,
+    this.tooltip,
+    this.onClear,
   });
 
-  final String label;
+  /// Null for a chip that is only its icon.
+  final String? label;
   final bool selected;
   final VoidCallback onTap;
+  final IconData? icon;
+
+  /// What the chip is called where it has no words of its own.
+  final String? tooltip;
+
+  /// With one, a cross on the chip takes the choice away.
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final ink = selected ? p.panel : p.text;
+    final chip = Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.only(
+        left: label == null ? 10 : 14,
+        right: onClear != null ? 4 : (label == null ? 10 : 14),
+      ),
+      decoration: BoxDecoration(
+        // Selection is ink.
+        color: selected ? p.text : Colors.transparent,
+        border: Border.all(color: selected ? p.text : p.track),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) Icon(icon, size: 17, color: ink),
+          if (icon != null && label != null) const SizedBox(width: 6),
+          if (label != null)
+            Text(
+              label!,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: ink,
+              ),
+            ),
+          if (onClear != null)
+            Semantics(
+              button: true,
+              label: 'Show every date',
+              child: GestureDetector(
+                onTap: onClear,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                  child: Icon(Icons.close, size: 15, color: ink),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
     return Semantics(
       button: true,
       selected: selected,
+      label: label == null ? tooltip : null,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            // Selection is ink.
-            color: selected ? p.text : Colors.transparent,
-            border: Border.all(color: selected ? p.text : p.track),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: selected ? p.panel : p.text,
-            ),
-          ),
-        ),
+        child: tooltip == null ? chip : Tooltip(message: tooltip!, child: chip),
       ),
     );
   }

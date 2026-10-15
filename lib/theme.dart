@@ -99,6 +99,19 @@ ThemeData themeFor(Brightness brightness) {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
     ),
+    // The calendar for picking dates, in the app's own ink and paper
+    // rather than colours worked out from a seed.
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: p.panel,
+      surfaceTintColor: Colors.transparent,
+      headerForegroundColor: p.text,
+      rangePickerBackgroundColor: p.panel,
+      rangePickerSurfaceTintColor: Colors.transparent,
+      rangePickerHeaderBackgroundColor: p.panel,
+      rangePickerHeaderForegroundColor: p.text,
+      rangeSelectionBackgroundColor: p.track,
+      dividerColor: p.track,
+    ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: p.text,
       linearTrackColor: p.track,

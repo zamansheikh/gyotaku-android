@@ -67,6 +67,13 @@ Future<int> keepOnly({required List<String> paths}) =>
 Future<List<Hit>> search({required String query, required int limit}) =>
     RustLib.instance.api.crateApiIndexSearch(query: query, limit: limit);
 
+/// When every screenshot `query` finds was taken, in seconds since the
+/// epoch, however many there are. For counting the matches and for showing
+/// which months they fall in. Much cheaper than `search`, which also finds
+/// the lines that matched in each.
+Future<Int64List> matchTimes({required String query}) =>
+    RustLib.instance.api.crateApiIndexMatchTimes(query: query);
+
 /// All the text of one screenshot, top to bottom.
 Future<List<Line>> shotLines({required PlatformInt64 id}) =>
     RustLib.instance.api.crateApiIndexShotLines(id: id);

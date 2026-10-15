@@ -68,6 +68,14 @@ About the name: gyotaku is a Japanese way of recording a catch by inking a fish 
 • The privacy policy is linked from the welcome page and the About page
 ```
 
+## What's new (500 characters at most), for version 1.2.7
+
+```
+• Search results can be narrowed to any dates: tap the calendar beside Today to pick a range
+• A big search now shows which months its matches fall in, with a count for each. Tap a month to see only those
+• The number of matches is exact, however many there are
+```
+
 ## Store settings
 
 | Field | Value |
