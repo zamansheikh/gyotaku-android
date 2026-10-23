@@ -15,13 +15,19 @@ Search every screenshot on your phone by the text inside it. Everything is read 
 
 **This is an unofficial community app.** It is built on [gyotaku](https://github.com/xevrion/gyotaku), the desktop app by Yash Bavadiya, and uses that project's own index, search and readers. It is maintained here, separately, by Zaman Sheikh. Please report problems with the Android app in [this repository's issues](https://github.com/zamansheikh/gyotaku-android/issues), not to the desktop project.
 
-Download the latest build from [Releases](https://github.com/zamansheikh/gyotaku-android/releases). Android 7.0 or later. The app's site, with its [privacy policy](https://zamansheikh.github.io/gyotaku-android/privacy/) and [support page](https://zamansheikh.github.io/gyotaku-android/support/), is at [zamansheikh.github.io/gyotaku-android](https://zamansheikh.github.io/gyotaku-android/).
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.silifton.gyotaku"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80" /></a>
+</p>
+
+Get it on [Google Play](https://play.google.com/store/apps/details?id=com.silifton.gyotaku). Android 7.0 or later. The app's site, with its [privacy policy](https://zamansheikh.github.io/gyotaku-android/privacy/) and [support page](https://zamansheikh.github.io/gyotaku-android/support/), is at [zamansheikh.github.io/gyotaku-android](https://zamansheikh.github.io/gyotaku-android/).
+
+Builds for testing are on [Releases](https://github.com/zamansheikh/gyotaku-android/releases). Google Play signs the app with its own key, so a build from Releases and the one from Play will not install over each other: uninstall one first, which also empties its index.
 
 ## What it does
 
 - Finds screenshots by any part of a word in them, and lights up the lines that matched.
 - Copies a screenshot's text, one line or all of it, and shares the image.
-- Filters by Today, Yesterday, This week and This month.
+- Narrows the results by date: Today, Yesterday, This week, This month, or any days picked on a calendar. A search with many matches shows which months they fall in, and a tap narrows it to one.
 - Lets you choose which folders are read. Screenshot folders are on to begin with.
 - Optionally reads Bangla and Devanagari (Hindi, Marathi, Nepali) with readers that download once.
 - Keeps reading with the app put away, with progress in a notification, and can be paused.
@@ -120,3 +126,5 @@ gyotaku was created by [Yash Bavadiya](https://github.com/xevrion). The name and
 Text recognition: ML Kit, PaddleOCR PP-OCRv6 and PP-OCRv5 models, and EasyOCR's Bengali model, run on ONNX Runtime. Typeface: IBM Plex Sans, under the SIL Open Font License 1.1 (`fonts/OFL.txt`).
 
 Licensed under the [GNU General Public License v3.0 or later](LICENSE), like gyotaku itself.
+
+Google Play and the Google Play logo are trademarks of Google LLC.
